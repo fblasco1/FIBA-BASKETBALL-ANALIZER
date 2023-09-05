@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 
 import time
 import pandas as pd
+from stats_advanced import eFG, ratio_tl, ORB, DRB, perdidas_plays
 
 # Set up the Selenium webdriver
 options = webdriver.ChromeOptions()
@@ -51,7 +52,7 @@ def format_actions_fiba_basketball(quarter, actions, game_data, team):
                         {
                             "quarter": quarter,
                             "player": jugador.text,
-                            "action": "TAPON"
+                            "action": "TAPA"
                         }
                     )
                 if action_description in "Pérdida de balón":
@@ -98,9 +99,7 @@ def scraper_fixture_fiba_basketball(link):
         link_game = game.find('div', {'class': 'participants'}).find('a').get('href')
         if link_game != None:
             print(link_game)
-            games.append({
-                 "link": link_game
-            })
+            games.append(link_game)
     
     return games
 
@@ -145,7 +144,7 @@ def scraper_actions_fiba_basketball(games):
     return pbps
 
 
-def boxscore_four_factors(links):
+def scraper_boxscore_fiba_basketball_four_factors(links):
     games = []
     i = 0
     for link in links:
@@ -157,6 +156,9 @@ def boxscore_four_factors(links):
 
         soup = bs(html, 'html.parser')
         
+        if soup.find("div", {'class': 'game-page-no-content'}).text == "El partido no ha comenzado.":
+            continue
+
         boxscores = pd.read_html(html)
 
         boxscores[0].loc[boxscores[0]["#"] == "Totales", ["Jugadores"]] = soup.find('div', {'class': "team-A"}).find('span', {'class': "team-name"}).text
@@ -197,8 +199,7 @@ def boxscore_four_factors(links):
 
     result = pd.concat(games)
 
-    result = result.loc[(result["Jugadores"] == "Puerto Rico") | (result["Jugadores"] == "República Dominicana"), 
-                        ['Jugadores', 'Pts', 'TCc', 'TCi', '3Pc', 'TLc', 'TLi', 'TO', 'REBO', 'REBD', 'PTS_OPP', 'TCc_OPP', 'TCi_OPP', '3Pc_OPP', 'TLc_OPP', 'TLi_OPP', 'TO_OPP', 'RO_OPP', 'RD_OPP']]
+    result = result.loc[:, ['Jugadores', 'Pts', 'TCc', 'TCi', '3Pc', 'TLc', 'TLi', 'TO', 'REBO', 'REBD', 'PTS_OPP', 'TCc_OPP', 'TCi_OPP', '3Pc_OPP', 'TLc_OPP', 'TLi_OPP', 'TO_OPP', 'RO_OPP', 'RD_OPP']]
 
     result["Pts"] = result["Pts"].astype(float)
     result["TCc"] = result["TCc"].astype(float) 
@@ -221,17 +222,19 @@ def boxscore_four_factors(links):
 
     result = result.groupby("Jugadores").sum()
 
+    equipos_prueba = result.index
+
     data_eight_factors = {
-        "Equipo": result.index,
-        "Poss": [(result.loc["Puerto Rico", "TCi"] + 0.44 * result.loc["Puerto Rico", "TLi"] + result.loc["Puerto Rico", "TO"] - result.loc["Puerto Rico", "REBO"]), (result.loc["República Dominicana", "TCi"] + 0.44 * result.loc["República Dominicana", "TLi"] + result.loc["República Dominicana", "TO"] - result.loc["República Dominicana", "REBO"])],
-        "eFG%": [((result.loc["Puerto Rico", "TCc"] + 0.5 * result.loc["Puerto Rico", "3Pc"])/result.loc["Puerto Rico", "TCi"]), ((result.loc["República Dominicana", "TCc"] + 0.5 * result.loc["República Dominicana", "3Pc"])/result.loc["República Dominicana", "TCi"])],
-        "%TO": [(result.loc["Puerto Rico", "TO"] / (result.loc["Puerto Rico", "TCi"] + 0.44 * result.loc["Puerto Rico", "TLi"] + result.loc["Puerto Rico", "TO"])), (result.loc["República Dominicana", "TO"] / (result.loc["República Dominicana", "TCi"] + 0.44 * result.loc["República Dominicana", "TLi"] + result.loc["República Dominicana", "TO"]))],
-        "%ORB": [(result.loc["Puerto Rico", "REBO"] / (result.loc["Puerto Rico", "REBO"] + result.loc["Puerto Rico", "RD_OPP"])), (result.loc["República Dominicana", "REBO"] / (result.loc["República Dominicana", "REBO"] + result.loc["República Dominicana", "RD_OPP"]))],
-        "%FT": [(result.loc["Puerto Rico", "TLc"] / result.loc["Puerto Rico", "TCi"]), (result.loc["República Dominicana", "TLc"] / result.loc["República Dominicana", "TCi"])],
-        "OPP_eFG%": [((result.loc["Puerto Rico", "TCc_OPP"] + 0.5 * result.loc["Puerto Rico", "3Pc_OPP"])/result.loc["Puerto Rico", "TCi_OPP"]), ((result.loc["República Dominicana", "TCc_OPP"] + 0.5 * result.loc["República Dominicana", "3Pc_OPP"])/result.loc["República Dominicana", "TCi_OPP"])],
-        "OPP_%TO": [(result.loc["Puerto Rico", "TO_OPP"] / (result.loc["Puerto Rico", "TCi_OPP"] + 0.44 * result.loc["Puerto Rico", "TLi_OPP"] + result.loc["Puerto Rico", "TO_OPP"])), (result.loc["República Dominicana", "TO_OPP"] / (result.loc["República Dominicana", "TCi_OPP"] + 0.44 * result.loc["República Dominicana", "TLi_OPP"] + result.loc["República Dominicana", "TO_OPP"]))],
-        "%DRB": [(result.loc["Puerto Rico", "REBD"] / (result.loc["Puerto Rico", "REBD"] + result.loc["Puerto Rico", "RO_OPP"])), (result.loc["República Dominicana", "REBD"] / (result.loc["República Dominicana", "REBD"] + result.loc["República Dominicana", "RO_OPP"]))],
-        "OPP_%FT": [(result.loc["Puerto Rico", "TLc_OPP"] / result.loc["Puerto Rico", "TCi_OPP"]), (result.loc["República Dominicana", "TLc_OPP"] / result.loc["República Dominicana", "TCi_OPP"])],
+        "Equipo": equipos_prueba,
+        #"Poss": [(result.loc[equipos[0], "TCi"] + 0.44 * result.loc[equipos[0], "TLi"] + result.loc[equipos[0], "TO"] - result.loc[equipos[0], "REBO"]), (result.loc[equipos[1], "TCi"] + 0.44 * result.loc[equipos[1], "TLi"] + result.loc[equipos[1], "TO"] - result.loc[equipos[1], "REBO"])],
+        "eFG%": [eFG(result.loc[equipo, "TCi"], result.loc[equipo, "TCc"], result.loc[equipo, "3Pc"]) for equipo in equipos_prueba],
+        "%TO": [perdidas_plays(result.loc[equipo, "TCi"], result.loc[equipo, "TO"], result.loc[equipo, "TLi"]) for equipo in equipos_prueba],
+        "%ORB": [ORB(result.loc[equipo, "REBO"], result.loc[equipo, "RD_OPP"]) for equipo in equipos_prueba],
+        "%FT": [ratio_tl(result.loc[equipo, "TCi"], result.loc[equipo, "TLc"]) for equipo in equipos_prueba],
+        "OPP_eFG%":  [eFG(result.loc[equipo, "TCi_OPP"], result.loc[equipo, "TCc_OPP"], result.loc[equipo, "3Pc_OPP"]) for equipo in equipos_prueba],
+        "OPP_%TO": [perdidas_plays(result.loc[equipo, "TCi_OPP"], result.loc[equipo, "TO_OPP"], result.loc[equipo, "TLi_OPP"]) for equipo in equipos_prueba],
+        "%DRB": [DRB(result.loc[equipo, "REBD"], result.loc[equipo, "RO_OPP"]) for equipo in equipos_prueba],
+        "OPP_%FT": [ratio_tl(result.loc[equipo, "TCi_OPP"], result.loc[equipo, "TLc_OPP"]) for equipo in equipos_prueba],
     }
 
     return pd.DataFrame(data_eight_factors)
