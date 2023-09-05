@@ -7,6 +7,7 @@ def convertir_minutos(self):
     except ValueError:
         return int(self.minutos.split(".")[0]) + int(self.minutos.split(".")[1]) / 60
     
+    
 def plays(tci, per, tli):
     """
     Estima el numero de jugadas que un equipo tiene durante un partido/temporada.
@@ -21,81 +22,69 @@ def possesions(tci, per, tli, rebo):
     return round(tci + per + 0.44 * tli - rebo, 2)
     
 
-def fpace(self, possesionop):
-    """
-    Estima el ritmo de juego que se desarrolla a lo largo de un partido.
-    """
-    if type(self.minutos) == str: 
-        if self.convertir_minutos() == 0:
-            self.pace = 0
-        else:
-            self.pace = 40 * (self.possesions() + possesionop) / (2 * (self.convertir_minutos() / 5))
-    else:
-        if self.minutos == 0:
-            self.pace = 0
-        else:
-            self.pace = 40 * (self.possesions() + possesionop) / (2 * (self.minutos / 5))
-    return round(self.pace, 2)
-
-def pts_plays(self):
+def pts_plays(pts, tci, per, tli):
     """
     Mide los puntos de un equipo o jugador por jugada.
     """
-    if self.plays == 0:
-        self.ptsplays = 0
+    _plays = plays(tci, per, tli)
+    if _plays == 0:
+        return 0
     else:
-        self.ptsplays = self.puntos/self.fplays()
-    return round(self.ptsplays, 2)
+        return round(pts / _plays, 2)
 
-def pts_poss(self):
+
+def pts_poss(pts, tci, per, tli, rebo):
     """
     Mide los puntos de un equipo o jugador por posesiones.
     """
-    if self.possesions() == 0:
-        self.ptsposs = 0
+    _possesions = possesions(tci, per, tli, rebo)
+    if _possesions == 0:
+        return 0
     else:
-        self.ptsposs = self.puntos/self.possesions()
-    return round(self.ptsposs, 2)
+        return round(pts/_possesions)
 
-def off_rtg_plays(self):
+
+def oer_plays(pts, tci, per, tli):
     """
     Ajusta la anotación de un equipo a 100 jugadas.
     """
-    if self.plays == 0:
-        self.effOffPlays = 0
+    _pts_plays = pts_plays(pts, tci, per, tli)
+    if _pts_plays == 0:
+        return 0
     else:
-        self.effOffPlays = (self.puntos/self.fplays())*100
-    return round(self.effOffPlays, 2)
+        return round(_pts_plays*100,2)
 
-def def_rtg_plays(self, playsop):
+
+def der_plays(pts_opp, tci_opp, per_opp, tli_opp):
     """
     Ajusta la defensa de un equipo a 100 jugadas.
     """
-    if self.plays == 0:
-        self.effDefPlays = 0
+    _plays_opp = plays(tci_opp, per_opp, tli_opp)
+    if _plays_opp == 0:
+        return 0
     else:
-        self.effDefPlays = (self.puntos/playsop)*100
-    return round(self.effDefPlays, 2)
+        return round(100 * (pts_opp / _plays_opp), 2)
 
-def off_rtg_poss(self):
+def oer_poss(pts, tci, per, tli,rebo):
     """
     Ajusta la anotación de un equipo a 100 posesiones.
     """
-    if self.possesions() == 0:
-        self.effOff = 0
+    _possesions = possesions(tci, per, tli,rebo)
+    if _possesions == 0:
+        return 0
     else:
-        self.effOff = (self.puntos/self.possesions())*100
-    return round(self.effOff, 2)
+        return round(100 * (pts / _possesions), 2)
 
-def def_rtg_poss(self, possesionop):
+def der_poss(pts_opp, tci_opp, per_opp, tli_opp,rebo_opp):
     """
     Ajusta la defensa de un equipo a 100 posesiones.
     """
-    if possesionop == 0:
-        self.efDef = 0
+    _possesions = possesions(tci_opp, per_opp, tli_opp,rebo_opp)
+    if _possesions == 0:
+        return 0
     else:
-        self.efDef = (self.puntos/possesionop)*100
-    return round(self.efDEF, 2)
+        return round((pts_opp/_possesions)*100, 2)
+    
 
 def eFG(tci, tcc, t3c):
     """
@@ -107,16 +96,16 @@ def eFG(tci, tcc, t3c):
     else:
         return round(100 * ((tcc + 0.5 * t3c) / tci), 2)
 
-def true_shooting(self):
+def true_shooting(pts, tci, tli):
     """
     Ajusta el porcentaje de tiro de campo de un equipo o jugador incluyendo el tiro libre.
     Abarca todas las vías de anotación.
     """
-    if self.tiroscampointentados == 0 and self.tiroslibresintentados == 0:
-        self.ts = 0
+    if tci == 0 and tli == 0:
+        return 0
     else:
-        self.ts = (self.puntos/(2* (self.tiroscampointentados + 0.44 * self.tiroslibresintentados)))*100
-    return round(self.ts, 2)
+        return round((pts/(2* (tci + 0.44 * tli)))*100, 2)
+    
 
 def ORB(rebo, rebd_opp):
     """
@@ -136,157 +125,162 @@ def DRB(rebd, rebo_opp):
     else: 
         return round(100 * (rebd / (rebd + rebo_opp)), 2)
 
-def asist_poss(self):
+
+def ast_poss(ast, tci, per, tli, rebo):
     """
     Ajusta la cantidad de asistencias de un jugador o equipo segun la cantidad de posesiones.
     """
-    if self.possesions() == 0:
-        self.tAS = 0
+    _possesions = possesions(tci, per, tli, rebo)
+    if _possesions == 0:
+        return 0
     else:
-        self.tAS = self.asistencias * 100 / self.possesions()
-    return round(self.tAS, 2)
+        return round(100 * (ast/_possesions), 2)
 
-def asist_plays(self):
+
+def ast_plays(ast, tci, per, tli):
     """
     Ajusta la cantidad de asistencias de un jugador o equipo segun la cantidad de jugadas.
     Hollinger Asist Ratio.
     """
-    if self.fplays() == 0:
-        self.tASPlays = 0
+    _plays = _plays(tci, per, tli)
+    if _plays == 0:
+        return 0
     else:
-        self.tASPlays = self.asistencias * 100 / self.fplays()
-    return round(self.tASPlays, 2)
+        return round(100 * (ast / _plays),2)
 
-def asist_per_ratio(self):
+
+def asist_per_ratio(ast, per):
     """
     Ajusta la cantidad de asistencias de un jugador o equipo segun la cantidad de pérdidas.
     """
-    if self.perdidas == 0:
-        self.tASPER = 0
+    if per == 0:
+        return 0
     else:
-        self.tASPER = self.asistencias / self.perdidas
-    return round(self.tASPER, 2)
+       return round(ast/per, 2)
+    
 
-def porc_asist(self):
+def tc_assisted(ast, tcc):
     """
     Mide el porcentaje de tiros de campo asistidos por un equipo
     """
-    if self.asistencias == 0:
-        self.tTCAS = 0
+    if ast == 0:
+        return 0
     else:
-        self.tTCAS = self.asistencias * 100 / self.tiroscampoconvertidos
-    return round(self.tTCAS, 2)
-
-def recuperos_poss(self, possesionop):
+        return round(100 * (ast / tcc), 2)
+    
+def rec_poss(rec, tci_opp, per_opp, tli_opp,rebo_opp):
     """
     Ajusta la cantidad de recuperos de un equipo o jugador cada 100 posesiones del rival.
     """
-    if possesionop == 0:
-        self.tREC = 0
+    _possesions = possesions(tci_opp, per_opp, tli_opp,rebo_opp)
+    if _possesions == 0:
+        return 0
     else:
-        self.tREC = self.recuperos * 100 / possesionop
-    return round(self.tREC, 2)
+        return round((rec/_possesions)*100, 2)
 
-def recuperos_plays(self, playsop):
+
+def rec_plays(rec, tci_opp, per_opp, tli_opp):
     """
     Ajusta la cantidad de recuperos de un equipo o jugador cada 100 plays del rival.
     """
-    if playsop == 0:
-        self.tRECPlays = 0
-    else:
-        self.tRECPlays = self.recuperos * 100 / playsop
-    return round(self.tRECPlays, 2)
-
-def perdidas_poss(self):
-    """
-    Ajusta la cantidad de pérdidas de un equipo o jugador cada 100 posesiones.
-    """
-    if self.possesions() == 0:
-        self.tPER = 0
-    else:
-        self.tPER = self.perdidas * 100 / self.possesions()
-    return round(self.tPER, 2)
-
-def perdidas_plays(tci, per, tli):
-    """
-    Ajusta la cantidad de pérdidas de un equipo o jugador cada 100 plays.
-    """
-    _plays = plays(tci, per, tli)
-    if  _plays == 0:
+    _plays = plays(tci_opp, per_opp, tli_opp)
+    if _possesions == 0:
         return 0
     else:
-        return round(100 * (per / _plays), 2)
+        return round((rec/_plays)*100, 2)
+
+
+def per_poss(per, tci_opp, per_opp, tli_opp,rebo_opp):
+    """
+    Ajusta la cantidad de perdidas de un equipo o jugador cada 100 posesiones.
+    """
+    _possesions = possesions(tci_opp, per_opp, tli_opp,rebo_opp)
+    if _possesions == 0:
+        return 0
+    else:
+        return round((per/_possesions)*100, 2)
+
+
+def per_plays(per, tci_opp, per_opp, tli_opp):
+    """
+    Ajusta la cantidad de perdidas de un equipo o jugador cada 100 plays.
+    """
+    _plays = plays(tci_opp, per_opp, tli_opp)
+    if _possesions == 0:
+        return 0
+    else:
+        return round((per/_plays)*100, 2)
  
     
-def tapones_ratio(self, doblesintentadosop):
+def tapones_ratio(tap, _2Pi_opp):
     """
     Ajusta la cantidad de tapones de un equipo o jugador según la cantidad de tiros de 2 intentados del rival.
     """
-    if doblesintentadosop == 0:
-        self.tTAP = 0
+    if _2Pi_opp == 0:
+        return 0
     else:
-        self.tTAP = 100 * (self.tapones / doblesintentadosop)
-    return round(self.tTAP, 2)
+        return round(100 * (tap / _2Pi), 2)
 
-def ratio_tl(tci, tli):
+
+def ratio_tl(tci, tlc):
     """
     Mide la asiduidad con la que un jugador o equipo va a la linea de libres.
     """
     if tci == 0:
         return 0
     else:
-        return round(100 * (tli / tci), 2) 
+        return round(100 * (tlc / tci), 2) 
     
 
-def ratio_2p(self):
+def ratio_2p(_2Pc, tci):
     """
     Mide la asiduidad con la que un jugador o equipo tira de 2.
     """
-    if self.tiroscampointentados == 0:
-        self.ratio2p = 0
+    if tci == 0:
+        return 0
     else:
-        self.ratio2p = 100 * (self.doblesconvertidos / self.tiroscampointentados)
-    return round(self.ratio2p, 2)
+        return round(100 * (_2Pc / tci), 2)
 
-def ratio_3p(self):
+
+def ratio_3p(_3Pc, tci):
     """
     Mide la asiduidad con la que un jugador o equipo tira de 3.
     """
-    if self.tiroscampointentados == 0:
-        self.ratio3p = 0
+    if tci == 0:
+        return 0
     else:
-        self.ratio3p = 100 * (self.triplesconvertidos / self.tiroscampointentados)
-    return round(self.ratio3p, 2)
+        return round(100 * (_3Pc / tci), 2)
 
-def pps_tl(self):
+
+def pps_tl(tlc, tli):
     """
     Mide los puntos por tiro de libre de un jugador o equipo.
     """
-    if self.tiroslibresintentados == 0:
-        self.ppsTL = 0
+    if tli == 0:
+        return 0
     else:
-        self.ppsTL = self.tiroslibresconvertidos / self.tiroslibresintentados
-    return round(self.ppsTL, 2)
+        return round(tlc / tli, 2)
 
-def pps_2p(self):
+
+def pps_2p(_2Pi, _2Pc):
     """
     Mide los puntos por tiro de 2 de un jugador o equipo.
     """
-    if self.doblesintentados == 0:
-        self.pps2P = 0
+    if _2Pi == 0:
+        return 0
     else:
-        self.pps2P = (self.doblesconvertidos * 2 / self.doblesintentados)
-    return round(self.pps2P, 2)
+       return round(_2Pc * 2 / _2Pi, 2)
+    
 
-def pps_3p(self):
+def pps_3p(_3Pi, _3Pc):
     """
     Mide los puntos por tiro de 3 de un jugador o equipo.
     """
-    if self.triplesintentados == 0:
-        self.pps3P = 0
+    if _3Pi == 0:
+        return 0
     else:
-        self.pps3P = (self.triplesconvertidos * 3 / self.triplesintentados)
-    return round(self.pps3P, 2)
+        return round(_3Pc * 3 / _3Pi, 2)
+    
 
 def pts_ro(self):
     """
@@ -297,6 +291,7 @@ def pts_ro(self):
     else:
         self.ppORB = self.secondchance / self.reboff
     return round(self.ppORB, 2)
+
 
 def USG(self, tcijugador, tlijugador, perjugador, minjugador, tciequipo, tliequipo, perequipo, mintotales):
     minutesjug = self.convertir_minutos(minjugador)
