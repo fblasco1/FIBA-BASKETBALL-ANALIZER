@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup as bs
 
 import time
 import pandas as pd
-from stats_advanced import eFG, ratio_tl, ORB, DRB, perdidas_plays
 
 # Set up the Selenium webdriver
 options = webdriver.ChromeOptions()

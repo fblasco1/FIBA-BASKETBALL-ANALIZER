@@ -1,5 +1,5 @@
 import pandas as pd
-from stats_advanced import eFG, perdidas_plays, ORB, ratio_tl, DRB
+from stats_advanced import eFG, per_plays, ORB, ratio_tl, DRB
 
 def calculate_eight_factors(df: pd.Dataframe(), cols: list, col_team):
     result = df.loc[:, cols]

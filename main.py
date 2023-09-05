@@ -14,7 +14,7 @@ fixture = scrapers.scraper_fixture_fiba_basketball("https://www.fiba.basketball/
 
 df = scrapers.scraper_boxscore_fiba_basketball(fixture)
 
-df.to_csv(hoy + '.csv')
+df.to_csv('C:/Users/franc/Downloads/' + hoy + '.csv')
 
 
 ######################################################################
