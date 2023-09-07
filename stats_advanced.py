@@ -142,7 +142,7 @@ def ast_plays(ast, tci, per, tli):
     Ajusta la cantidad de asistencias de un jugador o equipo segun la cantidad de jugadas.
     Hollinger Asist Ratio.
     """
-    _plays = _plays(tci, per, tli)
+    _plays = plays(tci, per, tli)
     if _plays == 0:
         return 0
     else:
@@ -184,29 +184,29 @@ def rec_plays(rec, tci_opp, per_opp, tli_opp):
     Ajusta la cantidad de recuperos de un equipo o jugador cada 100 plays del rival.
     """
     _plays = plays(tci_opp, per_opp, tli_opp)
-    if _possesions == 0:
+    if _plays == 0:
         return 0
     else:
         return round((rec/_plays)*100, 2)
 
 
-def per_poss(per, tci_opp, per_opp, tli_opp,rebo_opp):
+def per_poss(per, tci, tli,rebo):
     """
     Ajusta la cantidad de perdidas de un equipo o jugador cada 100 posesiones.
     """
-    _possesions = possesions(tci_opp, per_opp, tli_opp,rebo_opp)
+    _possesions = possesions(tci, per, tli,rebo)
     if _possesions == 0:
         return 0
     else:
         return round((per/_possesions)*100, 2)
 
 
-def per_plays(per, tci_opp, per_opp, tli_opp):
+def per_plays(per, tci, tli):
     """
     Ajusta la cantidad de perdidas de un equipo o jugador cada 100 plays.
     """
-    _plays = plays(tci_opp, per_opp, tli_opp)
-    if _possesions == 0:
+    _plays = plays(tci, per, tli)
+    if _plays == 0:
         return 0
     else:
         return round((per/_plays)*100, 2)
@@ -219,7 +219,7 @@ def tapones_ratio(tap, _2Pi_opp):
     if _2Pi_opp == 0:
         return 0
     else:
-        return round(100 * (tap / _2Pi), 2)
+        return round(100 * (tap / _2Pi_opp), 2)
 
 
 def ratio_tl(tci, tlc):
