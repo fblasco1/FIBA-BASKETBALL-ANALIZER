@@ -1,13 +1,7 @@
 from dash import dcc, html, Input, Output, callback
 import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
-import pandas as pd
-
-from analize_fiba_basketball import calculate_stats_advanced 
-
-df_stats = pd.read_excel('09-05-2023.xlsx')
-
-df = calculate_stats_advanced(df_stats)
+from .data_generator import df
 
 layout = dbc.Container([
     dcc.Store(id="store"),

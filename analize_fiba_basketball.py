@@ -2,14 +2,18 @@ import pandas as pd
 import stats_advanced as sa
 
 def calculate_stats_advanced(df):
+    df["Poss"] = df.apply(lambda row: sa.possesions(row['TCi'], row['TO'], row['TLi'], row['REBO']), axis=1)
+    df["Plays"] = df.apply(lambda row: sa.plays(row['TCi'], row['TO'], row['TLi']), axis=1)
+
     result = df.groupby(["Equipo"]).sum()
+    media = df[["Equipo", "Poss", "Plays"]].groupby(["Equipo"]).mean()
 
     equipos_prueba = result.index
 
     data_eight_factors = {
         "Equipo": equipos_prueba,
-        "Possesions": [sa.possesions(result.loc[equipo, "TCi"],result.loc[equipo, "TO"], result.loc[equipo, "TLi"], result.loc[equipo, "REBO"]) for equipo in equipos_prueba],
-        "Plays": [sa.plays(result.loc[equipo, "TCi"],result.loc[equipo, "TO"], result.loc[equipo, "TLi"]) for equipo in equipos_prueba],
+        "Possesions": [media.loc[equipo, "Poss"] for equipo in equipos_prueba],
+        "Plays": [media.loc[equipo, "Plays"] for equipo in equipos_prueba],
         "OER_POSS": [sa.oer_poss(result.loc[equipo, "Pts"], result.loc[equipo, "TCi"],result.loc[equipo, "TO"], result.loc[equipo, "TLi"], result.loc[equipo, "REBO"]) for equipo in equipos_prueba],
         "DER_POSS": [sa.der_poss(result.loc[equipo, "PTS_OPP"], result.loc[equipo, "TCi_OPP"],result.loc[equipo, "TO_OPP"], result.loc[equipo, "TLi_OPP"], result.loc[equipo, "RO_OPP"]) for equipo in equipos_prueba],
         "OER_PLAYS": [sa.oer_plays(result.loc[equipo, "Pts"], result.loc[equipo, "TCi"],result.loc[equipo, "TO"], result.loc[equipo, "TLi"]) for equipo in equipos_prueba],

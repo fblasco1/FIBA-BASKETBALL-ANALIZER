@@ -1,18 +1,6 @@
 from dash import Dash, dcc, html, Input, Output, callback
-import plotly.express as px
-import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
 from pages import home, eight_factors, comparisson, shot_quality
-
-#import scrapers
-
-#hoy = datetime.now().strftime("%m-%d-%Y")
-
-#fixture = scrapers.scraper_fixture_fiba_basketball("https://www.fiba.basketball/es/basketballworldcup/2023/games")
-
-#df = scrapers.scraper_boxscore_fiba_basketball(fixture)
-
-#df.to_csv(hoy + '.csv')
 
 # Inicializar la aplicación Dash
 app = Dash(__name__, 
@@ -55,6 +43,8 @@ def display_page(pathname):
         return eight_factors.layout
     elif pathname == '/comparisson':
         return comparisson.layout
+    elif pathname == '/shot-quality':
+        return shot_quality.layout
     else:
         return home.layout
 
