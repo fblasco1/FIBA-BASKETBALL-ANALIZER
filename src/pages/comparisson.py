@@ -3,7 +3,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 from PIL import Image
-from .data_generator import df
+from .data_generator import df_stats
+
 
 layout = dbc.Container([
     dcc.Store(id="store"),
@@ -19,7 +20,7 @@ layout = dbc.Container([
                                 dbc.Label("Metrica en Y"),
                                 dcc.Dropdown(
                                     id='metricaY-dropdown',
-                                    options=df.columns[1:],
+                                    options=df_stats.columns[1:],
                                     clearable=False,
                                     style={"width": 300},
                                     multi=False,
@@ -29,7 +30,7 @@ layout = dbc.Container([
                                 dbc.Label("Metrica en X", className="mx-2"),
                                 dcc.Dropdown(
                                     id='metricaX-dropdown',
-                                    options=df.columns[1:],
+                                    options=df_stats.columns[1:],
                                     clearable=False,
                                     style={"width": 300},
                                     multi=False,
@@ -48,7 +49,7 @@ layout = dbc.Container([
                         id='equipos-dropdown',
                         options=[
                             {'label': 'Seleccionar Todos', 'value': 'Todos'},
-                            * [{'label': equipo, 'value': equipo} for equipo in df.Equipo.unique()]
+                            * [{'label': equipo, 'value': equipo} for equipo in df_stats.Equipo.unique()]
                         ],
                         value='Todos',
                         clearable=False,
@@ -141,9 +142,9 @@ def crear_scatter_plot(data, metrica_x, metrica_y):
 def actualizar_scatter_plot(metrica_x, metrica_y, equipos_seleccionados):
     if 'Todos' in equipos_seleccionados:
         # Si se selecciona "Seleccionar Todos", se muestran todos los equipos
-        data_filtrada = df
+        data_filtrada = df_stats
     else:
         # Filtrar los datos por los equipos seleccionados
-        data_filtrada = df[df['Equipo'].isin(equipos_seleccionados)]
+        data_filtrada = df_stats[df_stats['Equipo'].isin(equipos_seleccionados)]
 
     return crear_scatter_plot(data_filtrada, metrica_x, metrica_y)

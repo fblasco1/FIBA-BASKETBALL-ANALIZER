@@ -1,7 +1,8 @@
 from dash import dcc, html, Input, Output, callback
 import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
-from .data_generator import df
+from .data_generator import df_stats
+
 
 layout = dbc.Container([
     dcc.Store(id="store"),
@@ -16,7 +17,7 @@ layout = dbc.Container([
                             [
                                 dcc.Dropdown(
                                     id='equipo1-dropdown',
-                                    options=df.Equipo.unique(),
+                                    options=df_stats.Equipo.unique(),
                                     value="Canadá",
                                     clearable=False,
                                     style={"width": 300},
@@ -24,7 +25,7 @@ layout = dbc.Container([
                                 ),
                                 dcc.Dropdown(
                                     id='equipo2-dropdown',
-                                    options=df.Equipo.unique(),
+                                    options=df_stats.Equipo.unique(),
                                     value="Italia",
                                     clearable=False,
                                     style={"width": 300},
@@ -70,8 +71,8 @@ def update_factor_charts(active_tab, equipo1, equipo2):
 
     # Crea gráficos de barras para cada factor en 4 columnas
     for factor in factores:
-        datos_equipo1 = df[df['Equipo'] == equipo1]
-        datos_equipo2 = df[df['Equipo'] == equipo2]
+        datos_equipo1 = df_stats[df_stats['Equipo'] == equipo1]
+        datos_equipo2 = df_stats[df_stats['Equipo'] == equipo2]
 
         fig = go.Figure(data=[
             go.Bar(name=equipo1, x=[equipo1], y=datos_equipo1[factor], marker_color='blue'),

@@ -9,77 +9,91 @@ options = webdriver.ChromeOptions()
 options.add_argument('--headless')  # Run Chrome in headless mode
 driver = webdriver.Chrome(options=options)
 
-def format_actions_fiba_basketball(quarter, actions, game_data, team):
+def format_actions_fiba_basketball(id, team, opponent, team_winner, quarter, actions):
+    game = {
+        "id": [],
+        "team": [],
+        "opponent": [],
+        "quarter": [],
+        "clock": [],
+        "player": [],
+        "action": [],
+        "result": [],
+        "team_winner": [],
+    }
     for action in actions:
-            jugador = action.find('div', {'class': 'action'}).find('span', {'class': 'athlete-name'})
-            action_description = action.find('div', {'class': 'action'}).find('span', {'class': 'action-description'}).text
-            if jugador == None:
-                game_data[team]["actions"].append(
-                    {
-                        "quarter": quarter,
-                        "player": "Equipo",
-                        "action": action_description
-                    }
-                )
-            if jugador != None:
-                if action_description in "Hizo la asistencia":
-                    game_data[team]["actions"].append(
-                        {
-                            "quarter": quarter,
-                            "player": jugador.text,
-                            "action": "ASISTENCIA"
-                        }
-                    )
-                if action_description in "Rebote Ofensivo":
-                    game_data[team]["actions"].append(
-                        {
-                            "quarter": quarter,
-                            "player": jugador.text,
-                            "action": "REBOTE OFENSIVO"
-                        }
-                    )
-                if action_description in "Rebote Defensivo":
-                    game_data[team]["actions"].append(
-                        {
-                            "quarter": quarter,
-                            "player": jugador.text,
-                            "action": "REBOTE DEFENSIVO"
-                        }
-                    )
-                if action_description in "Bloqueó el tiro":
-                    game_data[team]["actions"].append(
-                        {
-                            "quarter": quarter,
-                            "player": jugador.text,
-                            "action": "TAPA"
-                        }
-                    )
-                if action_description in "Pérdida de balón":
-                    game_data[team]["actions"].append(
-                        {
-                            "quarter": quarter,
-                            "player": jugador.text,
-                            "action": "PERDIDA"
-                        }
-                    )
-                if action_description in "Robo":
-                    game_data[team]["actions"].append(
-                        {
-                            "quarter": quarter,
-                            "player": jugador.text,
-                            "action": "RECUPERO"
-                        }
-                    )
-                if action_description in "":
-                    game_data[team]["actions"].append(
-                        {
-                            "quarter": quarter,
-                            "player": jugador.text,
-                            "action": "RECUPERO"
-                        }
-                    )
-
-    return game_data
+        clock = action.find('div', {'class': 'occurrence-info'}).find('span', {'class': 'time'}).text
+        jugador = action.find('div', {'class': 'action'}).find('span', {'class': 'athlete-name'})
+        action_description = action.find('div', {'class': 'action'}).find('span', {'class': 'action-description'}).text
+        game["id"].append(id)
+        game["team"].append(team)
+        game["opponent"].append(opponent)
+        game["quarter"].append(quarter)
+        game["clock"].append(clock)
+        game["team_winner"].append(team_winner)
+        if jugador == None:
+            game["player"].append("Equipo")
+        elif jugador != None:
+            game["player"].append(jugador.text)
+        if "Rebote ofensivo" in action_description:
+            game["action"].append("REBOTE OFENSIVO")
+            game["result"].append(2)
+        elif "Rebote defensivo" in action_description:
+            game["action"].append("REBOTE DEFENSIVO")
+            game["result"].append(2)
+        elif "Hizo la asistencia" in action_description:
+            game["action"].append("ASISTENCIA")
+            game["result"].append(2)
+        elif "Bloqueó el tiro" in action_description:
+            game["action"].append("BLOQUEO")
+            game["result"].append(2)
+        elif "Pérdida de balón" in action_description:
+            game["action"].append("PERDIDA")
+            game["result"].append(2)
+        elif "Robo" in action_description:
+            game["action"].append("RECUPERO")
+            game["result"].append(2)
+        elif "Bandeja anotada" in action_description or "Bandeja anotado" in action_description or "2pts anotado" in action_description or "Palmeo anotado" in action_description or "Mate anotado" in action_description:
+            game["action"].append("2P")
+            game["result"].append(1)
+        elif "Bandeja fallada" in action_description or "Bandeja fallado" in action_description or "Bandeja bloqueado" in action_description or "2pts fallado" in action_description or "Palmeo fallado" in action_description or "Mate fallado" in action_description or "Mate bloqueado" in action_description:
+            game["action"].append("2P")
+            game["result"].append(0)
+        elif "3pts anotado" in action_description:
+            game["action"].append("3P")
+            game["result"].append(1)
+        elif "3pts fallado" in action_description:
+            game["action"].append("3P")
+            game["result"].append(0)
+        elif "tiros libres anotado" in action_description or "Tiro libre anotado" in action_description:
+            game["action"].append("1P")
+            game["result"].append(1)
+        elif "tiros libres fallado" in action_description or "Tiro libre fallado" in action_description:
+            game["action"].append("1P")
+            game["result"].append(0)
+        elif "Sustitución en" in action_description:
+            game["action"].append("SUSTITUCIÓN")
+            game["result"].append("Entra")
+        elif "Sustitución fuera" in action_description:
+            game["action"].append("SUSTITUCIÓN")
+            game["result"].append("Sale")
+        elif "Falta recibida" in action_description:
+            game["action"].append("FR")
+            game["result"].append(2)
+        elif "Falta de ataque" in action_description or "Falta personal" in action_description or "falta técnica" in action_description or "Falta técnica" in action_description or "Falta antideportiva" in action_description:
+            game["action"].append("FP")
+            game["result"].append(2)
+        elif "Salto inicial ganado" in action_description:
+            game["action"].append("SI")
+            game["result"].append(1)
+        elif "Salto inicial perdido" in action_description:
+            game["action"].append("SI")
+            game["result"].append(0)
+        else:
+            game["action"].append(action_description)
+            game["result"].append(2)
+    
+    return pd.DataFrame(game)
 
 
 def scraper_fixture_fiba_basketball(link):
@@ -103,11 +117,12 @@ def scraper_fixture_fiba_basketball(link):
     return games
 
 
-def scraper_actions_fiba_basketball(games):
+def scraper_actions_fiba_basketball(links):
     pbps = []
-    for game in games:
-        print(game["link"])
-        driver.get("https://www.fiba.basketball" + str(game["link"]) + "#|tab=play_by_play")
+    for link in links:
+        game_data = []
+        print("pbp " + link)
+        driver.get("https://www.fiba.basketball" + link + "#|tab=play_by_play")
         time.sleep(5)
 
         html = driver.page_source
@@ -115,38 +130,38 @@ def scraper_actions_fiba_basketball(games):
         soup = bs(html, 'html.parser')
 
         if soup.find('div', {'class': "game-page-no-content"}).text == "El partido no ha comenzado.": 
-            pass
+            continue
 
-        game_data = {
-            "team_a":{
-                "name": soup.find('div', {'class': "team-A"}).find('span', {'class': "team-name"}).text,
-                "actions": []
-            },
-            "team_b":{
-                "name": soup.find('div', {'class': "team-B"}).find('span', {'class': "team-name"}).text,
-                "actions": []
-            }
-        }
+        team_a = soup.find('div', {'class': "team-A"}).find('span', {'class': "team-name"}).text
+        team_b = soup.find('div', {'class': "team-B"}).find('span', {'class': "team-name"}).text
+        score_a = int(soup.find('div', {'class': "game-info"}).find('div', {'class': "final-score"}).find('span', {'class': "score-A"}).text)
+        score_b = int(soup.find('div', {'class': "game-info"}).find('div', {'class': "final-score"}).find('span', {'class': "score-B"}).text)
 
-        game_data = format_actions_fiba_basketball(4, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q4'}).find_all('li', {'class': "action-item x--team-A"}), game_data, "team_a")
-        game_data = format_actions_fiba_basketball(3, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q3'}).find_all('li', {'class': "action-item x--team-A"}), game_data, "team_a")
-        game_data = format_actions_fiba_basketball(2, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q2'}).find_all('li', {'class': "action-item x--team-A"}), game_data, "team_a")
-        game_data = format_actions_fiba_basketball(1, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q1'}).find_all('li', {'class': "action-item x--team-A"}), game_data, "team_a")
+        if score_a > score_b:
+            team_w = team_a
+        if score_a < score_b:
+            team_w = team_b
 
-        game_data = format_actions_fiba_basketball(4, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q4'}).find_all('li', {'class': "action-item x--team-B"}), game_data, "team_b")
-        game_data = format_actions_fiba_basketball(3, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q3'}).find_all('li', {'class': "action-item x--team-B"}), game_data, "team_b")
-        game_data = format_actions_fiba_basketball(2, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q2'}).find_all('li', {'class': "action-item x--team-B"}), game_data, "team_b")
-        game_data = format_actions_fiba_basketball(1, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q1'}).find_all('li', {'class': "action-item x--team-B"}), game_data, "team_b")
+        game_data.append(format_actions_fiba_basketball(link, team_a, team_b, team_w, 4, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q4'}).find_all('li', {'class': "action-item x--team-A"})))
+        game_data.append(format_actions_fiba_basketball(link, team_a, team_b, team_w, 3, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q3'}).find_all('li', {'class': "action-item x--team-A"})))
+        game_data.append(format_actions_fiba_basketball(link, team_a, team_b, team_w, 2, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q2'}).find_all('li', {'class': "action-item x--team-A"})))
+        game_data.append(format_actions_fiba_basketball(link, team_a, team_b, team_w, 1, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q1'}).find_all('li', {'class': "action-item x--team-A"})))
 
-        pbps.append(game_data)
+        game_data.append(format_actions_fiba_basketball(link, team_b, team_a, team_w, 4, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q4'}).find_all('li', {'class': "action-item x--team-B"})))
+        game_data.append(format_actions_fiba_basketball(link, team_b, team_a, team_w, 3, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q3'}).find_all('li', {'class': "action-item x--team-B"})))
+        game_data.append(format_actions_fiba_basketball(link, team_b, team_a, team_w, 2, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q2'}).find_all('li', {'class': "action-item x--team-B"})))
+        game_data.append(format_actions_fiba_basketball(link, team_b, team_a, team_w, 1, soup.find('ul', {'class': 'actions-list period_select_dependable', 'data_period_name': 'Q1'}).find_all('li', {'class': "action-item x--team-B"})))
 
-    return pbps
+        pbps.append(pd.concat(game_data))
+
+    return pd.concat(pbps)
 
 
 def scraper_boxscore_fiba_basketball(links):
     games = []
     i = 0
     for link in links:
+        print(link)
         i += 1
         driver.get("https://www.fiba.basketball" + link + "#tab=boxscore")
         time.sleep(5)

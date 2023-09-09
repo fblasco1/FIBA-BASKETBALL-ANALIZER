@@ -1,12 +1,12 @@
 import pandas as pd
-import stats_advanced as sa
+import src.stats_advanced as sa
 
 def calculate_stats_advanced(df):
     df["Poss"] = df.apply(lambda row: sa.possesions(row['TCi'], row['TO'], row['TLi'], row['REBO']), axis=1)
     df["Plays"] = df.apply(lambda row: sa.plays(row['TCi'], row['TO'], row['TLi']), axis=1)
 
-    result = df.groupby(["Equipo"]).sum()
-    media = df[["Equipo", "Poss", "Plays"]].groupby(["Equipo"]).mean()
+    result = df.groupby(["Jugadores"]).sum()
+    media = df[["Jugadores", "Poss", "Plays"]].groupby(["Jugadores"]).mean()
 
     equipos_prueba = result.index
 
@@ -45,3 +45,47 @@ def calculate_stats_advanced(df):
     }
 
     return pd.DataFrame(data_eight_factors)
+
+def shots_assited(df):
+    df = df.dropna()
+    # Filtrar las filas donde la acción es una ASISTENCIA
+    assist_df = df[df['action'].str.contains('ASISTENCIA')]
+
+    # Filtrar las filas donde la acción es un TIRO (1P, 2P o 3P)
+    shot_types = ['1P', '2P', '3P']
+    shot_df = df[df['action'].isin(shot_types)]
+
+    # Unir los DataFrames de asistencia y tiro por las columnas 'id', 'quarter', y 'clock'
+    merged_df = assist_df.merge(shot_df, on=['id', 'quarter', 'clock'], suffixes=('_asistencia', '_tiro'), how='inner')
+
+    # Crear un nuevo DataFrame con las columnas requeridas, incluyendo 'action' (tipo de tiro)
+    assisted_shots = pd.DataFrame({
+        'ID': merged_df['id'],
+        'Cuarto': merged_df['quarter'],
+        'Clock': merged_df['clock'],
+        'Jugador Asistente': merged_df['player_asistencia'],
+        'Jugador Ejecutante': merged_df['player_tiro'],
+        'Equipo': merged_df['team_asistencia'],
+        'Tipo de Tiro': merged_df['action_tiro']
+    })
+
+    # Filtrar las filas donde 'result' es igual a 1
+    shots_result_1 = shot_df[shot_df['result'] == 1]
+
+    # Filtrar las filas que no tienen una asistencia asociada (basado en id, clock y quarter)
+    unassisted_shots = shots_result_1[~shots_result_1.set_index(['id', 'clock', 'quarter']).index.isin(assist_df.set_index(['id', 'clock', 'quarter']).index)]
+
+    # Crear un nuevo DataFrame con las columnas requeridas
+    unassisted_shots_df = pd.DataFrame({
+        'ID': unassisted_shots['id'],
+        'Cuarto': unassisted_shots['quarter'],
+        'Clock': unassisted_shots['clock'],
+        'Jugador Ejecutante': unassisted_shots['player'],
+        'Equipo': unassisted_shots['team'],
+        'Tipo de Tiro': unassisted_shots['action']
+    })
+
+    unassisted_shots_df["Jugador Asistente"] = "Unassisted"
+
+    # Retornar el dataframe
+    return pd.concat([unassisted_shots_df, assisted_shots])
