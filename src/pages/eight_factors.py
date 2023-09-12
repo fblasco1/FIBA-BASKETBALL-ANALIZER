@@ -1,8 +1,7 @@
 from dash import dcc, html, Input, Output, callback
 import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
-from .data_generator import df_stats
-
+from .data_calculator import df_stats
 
 layout = dbc.Container([
     dcc.Store(id="store"),
@@ -18,7 +17,7 @@ layout = dbc.Container([
                                 dcc.Dropdown(
                                     id='equipo1-dropdown',
                                     options=df_stats.Equipo.unique(),
-                                    value="Canadá",
+                                    value="Alemania",
                                     clearable=False,
                                     style={"width": 300},
                                     multi=False,
@@ -26,7 +25,7 @@ layout = dbc.Container([
                                 dcc.Dropdown(
                                     id='equipo2-dropdown',
                                     options=df_stats.Equipo.unique(),
-                                    value="Italia",
+                                    value="Serbia",
                                     clearable=False,
                                     style={"width": 300},
                                     multi=False,

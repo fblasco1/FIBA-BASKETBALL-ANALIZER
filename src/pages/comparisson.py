@@ -3,8 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 from PIL import Image
-from .data_generator import df_stats
-
+from .data_calculator import df_stats
 
 layout = dbc.Container([
     dcc.Store(id="store"),

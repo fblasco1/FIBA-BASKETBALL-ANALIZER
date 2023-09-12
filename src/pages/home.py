@@ -1,4 +1,4 @@
-from dash import dcc, html, Input, Output, callback
+from dash import html
 import dash_bootstrap_components as dbc
 
 layout = dbc.Container([

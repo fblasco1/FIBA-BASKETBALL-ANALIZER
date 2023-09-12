@@ -1,6 +1,6 @@
 from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
-from pages import home, eight_factors, comparisson, shot_quality
+from pages import home, eight_factors, comparisson, shot_quality, tables_stats
 
 # Inicializar la aplicación Dash
 app = Dash(__name__, 
@@ -22,7 +22,10 @@ navbar = html.Nav([
                                 html.A("Comparador", className="nav-link text-white", href="/comparisson"), className="nav-item"
                             ),
                             html.Li(
-                                html.A("Shot Quality", className="nav-link text-white", href="/shot-quality"), className="nav-item"
+                                html.A("Distribución de Tiros", className="nav-link text-white", href="/shots"), className="nav-item"
+                            ),
+                            html.Li(
+                                html.A("Estadísticas", className="nav-link text-white", href="/stats"), className="nav-item"
                             ),
                         ], className="navbar-nav me-auto")
                     ], className="collapse navbar-collapse")
@@ -44,10 +47,12 @@ def display_page(pathname):
         return eight_factors.layout
     elif pathname == '/comparisson':
         return comparisson.layout
-    elif pathname == '/shot-quality':
+    elif pathname == '/shots':
         return shot_quality.layout
+    elif pathname == '/stats':
+        return tables_stats.layout
     else:
         return home.layout
 
-if __name__ == '__app__':
+if __name__ == '__main__':
     app.run_server(debug=True)
